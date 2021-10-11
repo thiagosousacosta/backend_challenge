@@ -1,8 +1,10 @@
 from rest_framework import viewsets
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from .models import Car, Tyre
-from .serializers import CarSerializer, TyreSerializer, CarTyresSerializer
+from .serializers import CarSerializer, TyreSerializer
+from .utils import maintenance_car, refuel_car
 
 
 class CarViewSet(viewsets.ModelViewSet):
@@ -12,8 +14,8 @@ class CarViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         data = request.data
-        car = Car.objects.filter(car_id = data['car_id'])
-        car_serializer = CarTyresSerializer(car, many=True)
+        car = Car.objects.filter(car_id=data['car_id'])
+        car_serializer = CarSerializer(car, many=True)
         return Response(car_serializer.data)
 
     def create(self, request, *args, **kwargs):
@@ -30,8 +32,42 @@ class TyreViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         data = request.data
-        car = Car.objects.get(car_id = data['car_id'])
-        tyre = Tyre.objects.create(car_id_id = car.car_id)
+        car = Car.objects.get(car_id=data['car_id'])
+        tyre = Tyre.objects.create(car_id_id=car.car_id)
         tyre_serializer = TyreSerializer(tyre)
         return Response(tyre_serializer.data)
 
+
+@api_view(('PUT',))
+def refuel(request):
+    data = request.data
+    car = Car.objects.get(car_id=data['car_id'])
+
+    car = refuel_car(car, data['gas_quantity'])
+
+    car.save()
+    car_serializer = CarSerializer(car)
+
+    return Response({'current_gas': car_serializer.data['current_gas']})
+
+
+@api_view(('PUT',))
+def maintenance(request):
+    data = request.data
+    car = Car.objects.get(car_id=data['car_id'])
+
+    replace_data = data['replace_part']
+    replace_part_id = replace_data.get('tyre')
+
+    car = maintenance_car(car, replace_part_id)
+
+    car.save()
+    car_serializer = CarSerializer(car)
+
+    return Response(car_serializer.data)
+
+
+@api_view(('GET',))
+def trip(request):
+    return Response({"id": "1"})
+    
