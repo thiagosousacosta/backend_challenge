@@ -1,13 +1,6 @@
-from django import urls
+from carmaintenance.routes import router
 from django.contrib import admin
-from django.db import router
-from django.urls import path, include
-from rest_framework import routers
-from carmaintenance.views import CarViewSet, TyreViewSet
-
-router = routers.DefaultRouter()
-router.register('cars', CarViewSet)
-router.register('tyres', TyreViewSet)
+from django.urls import include, path
 
 urlpatterns = [
     path('', include(router.urls)),
