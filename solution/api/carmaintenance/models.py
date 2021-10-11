@@ -14,6 +14,7 @@ class Car(models.Model):
 class Tyre(models.Model):
     tyre_id = models.AutoField(primary_key=True)
     degradation = models.IntegerField(default=0)
+    in_use = models.BooleanField(default=False)
     car_id = models.ForeignKey(
         Car, related_name='tyres', on_delete=models.CASCADE)
 
