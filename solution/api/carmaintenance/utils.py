@@ -16,7 +16,7 @@ def percentage_to_liter(quantity, capacity):
 
 
 def refuel_car(car, quantity):
-    if car.current_gas > MIN_GAS_ALLOWED:
+    if car.current_gas < MIN_GAS_ALLOWED:
         quantity_in_percentage = liter_to_percentage(
             quantity, car.gas_capacity)
         new_current_gas = car.current_gas + quantity_in_percentage
