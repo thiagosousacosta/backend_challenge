@@ -15,10 +15,13 @@ class CarViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post']
 
     def list(self, request, *args, **kwargs):
-        data = request.data
-        car = Car.objects.filter(car_id=data['car_id'])
-        car_serializer = CarSerializer(car, many=True)
-        return Response(car_serializer.data)
+        try:
+            data = request.data
+            car = Car.objects.filter(car_id=data['car_id'])
+            car_serializer = CarSerializer(car, many=True)
+            return Response(car_serializer.data)
+        except Exception as e:
+            return Response({'error': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
 
     def create(self, request, *args, **kwargs):
         car = Car.objects.create()
