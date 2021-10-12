@@ -1,7 +1,8 @@
 from django.urls import path
 from rest_framework import routers
 
-from carmaintenance.views import CarViewSet, TyreViewSet, maintenance, refuel, trip
+from carmaintenance.views import (CarViewSet, TyreViewSet, maintenance, refuel,
+                                  trip)
 
 router = routers.DefaultRouter()
 router.register('cars', CarViewSet, basename='cars')
