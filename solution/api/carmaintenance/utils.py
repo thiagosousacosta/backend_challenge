@@ -63,8 +63,7 @@ def make_trip(car, distance):
 
                 car, current_gas_l = check_car_condition(car, current_gas_l)
 
-        car.current_gas = liter_to_percentage(current_gas_l, car.gas_capacity)
-
+            car.current_gas = liter_to_percentage(current_gas_l, car.gas_capacity)
     return car
 
 
