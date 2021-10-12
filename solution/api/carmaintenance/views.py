@@ -4,7 +4,7 @@ from rest_framework.response import Response
 
 from .models import Car, Tyre
 from .serializers import CarSerializer, TyreSerializer
-from .utils import maintenance_car, refuel_car
+from .utils import maintenance_car, make_trip, refuel_car
 
 
 class CarViewSet(viewsets.ModelViewSet):
@@ -44,8 +44,8 @@ def refuel(request):
     car = Car.objects.get(car_id=data['car_id'])
 
     car = refuel_car(car, data['gas_quantity'])
-
     car.save()
+
     car_serializer = CarSerializer(car)
 
     return Response({'current_gas': car_serializer.data['current_gas']})
@@ -57,11 +57,11 @@ def maintenance(request):
     car = Car.objects.get(car_id=data['car_id'])
 
     replace_data = data['replace_part']
-    replace_part_id = replace_data.get('tyre')
+    replace_part_id = replace_data.get('tyre_id')
 
     car = maintenance_car(car, replace_part_id)
-
     car.save()
+
     car_serializer = CarSerializer(car)
 
     return Response(car_serializer.data)
@@ -69,5 +69,12 @@ def maintenance(request):
 
 @api_view(('GET',))
 def trip(request):
-    return Response({"id": "1"})
-    
+    data = request.data
+    car = Car.objects.get(car_id=data['car_id'])
+    distance = data['distance']
+
+    car = make_trip(car, distance)
+    car.save()
+
+    car_serializer = CarSerializer(car)
+    return Response(car_serializer.data)
