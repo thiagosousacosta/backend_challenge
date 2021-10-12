@@ -2,9 +2,11 @@ from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from .exceptions import *
 from .models import Car, Tyre
 from .serializers import CarSerializer, TyreSerializer
 from .utils import maintenance_car, make_trip, refuel_car
+from .validations import validate_tyre_creation
 
 
 class CarViewSet(viewsets.ModelViewSet):
@@ -31,50 +33,87 @@ class TyreViewSet(viewsets.ModelViewSet):
     http_method_names = ['post']
 
     def create(self, request, *args, **kwargs):
-        data = request.data
-        car = Car.objects.get(car_id=data['car_id'])
-        tyre = Tyre.objects.create(car_id_id=car.car_id)
-        tyre_serializer = TyreSerializer(tyre)
-        return Response(tyre_serializer.data)
+        try:
+            data = request.data
+            car = Car.objects.get(car_id=data['car_id'])
+
+            if validate_tyre_creation(car):
+                tyre = Tyre.objects.create(car_id_id=car.car_id)
+                tyre.save()
+                tyre_serializer = TyreSerializer(tyre)
+                car.save()
+                return Response(tyre_serializer.data)
+
+        except EnoughUsableTyresException as e:
+            return Response({'error': f'{e.message}'})
+        except Exception as e:
+            return Response({'error': f'{e}'})
 
 
 @api_view(('PUT',))
 def refuel(request):
-    data = request.data
-    car = Car.objects.get(car_id=data['car_id'])
+    try:
+        data = request.data
 
-    car = refuel_car(car, data['gas_quantity'])
-    car.save()
+        car = Car.objects.get(car_id=data['car_id'])
+        car = refuel_car(car, data['gas_quantity'])
+        car.save()
 
-    car_serializer = CarSerializer(car)
+        car_serializer = CarSerializer(car)
 
-    return Response({'current_gas': car_serializer.data['current_gas']})
+        return Response({'current_gas': car_serializer.data['current_gas']})
 
+    except EnoughGasException as e:
+        return Response({'error': f'{e.message}'})
+    except KeyError as e:
+        return Response({'error': f'Missing argument: {e}'})
+    except Exception as e:
+        return Response({'error': f'{e}'})
 
 @api_view(('PUT',))
 def maintenance(request):
-    data = request.data
-    car = Car.objects.get(car_id=data['car_id'])
+    try:
+        data = request.data
+        car = Car.objects.get(car_id=data['car_id'])
 
-    replace_data = data['replace_part']
-    replace_part_id = replace_data.get('tyre_id')
+        replace_data = data['replace_part']
 
-    car = maintenance_car(car, replace_part_id)
-    car.save()
+        if 'tyre_id' in data['replace_part']:
+            replace_part_id = replace_data.get('tyre_id')
 
-    car_serializer = CarSerializer(car)
+            car = maintenance_car(car, replace_part_id)
+            car.save()
 
-    return Response(car_serializer.data)
+            car_serializer = CarSerializer(car)
+
+            return Response(car_serializer.data)
+        else:
+            return Response({"error": "Part not listed"})
+
+    except NotSwappabledTyresException as e:
+        return Response({'error': f'{e.message}'})
+    except KeyError as e:
+        return Response({'error': f'Missing argument: {e}'})
+    except Exception as e:
+        return Response({'error': f'{e}'})
 
 
 @api_view(('GET',))
 def trip(request):
-    data = request.data
-    car = Car.objects.get(car_id=data['car_id'])
-    distance = data['distance']
+    try:
+        data = request.data
+        car = Car.objects.get(car_id=data['car_id'])
+        distance = data['distance']
 
-    car = make_trip(car, distance)
-    car.save()
+        car = make_trip(car, distance)
+        car.save()
 
-    car_serializer = CarSerializer(car)
-    return Response(car_serializer.data)
+        car_serializer = CarSerializer(car)
+        return Response(car_serializer.data)
+
+    except NotUsableCarException as e:
+        return Response({'error': f'{e.message}'})
+    except KeyError as e:
+        return Response({'error': f'Missing argument: {e}'})
+    except Exception as e:
+        return Response({'error': f'{e}'})
