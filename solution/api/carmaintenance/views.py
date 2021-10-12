@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -45,9 +45,9 @@ class TyreViewSet(viewsets.ModelViewSet):
                 return Response(tyre_serializer.data)
 
         except EnoughUsableTyresException as e:
-            return Response({'error': f'{e.message}'})
+            return Response({'error': f'{e.message}'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'error': f'{e}'})
+            return Response({'error': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(('PUT',))
@@ -66,9 +66,9 @@ def refuel(request):
     except EnoughGasException as e:
         return Response({'error': f'{e.message}'})
     except KeyError as e:
-        return Response({'error': f'Missing argument: {e}'})
+        return Response({'error': f'Missing argument: {e}'}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
-        return Response({'error': f'{e}'})
+        return Response({'error': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(('PUT',))
 def maintenance(request):
@@ -88,14 +88,14 @@ def maintenance(request):
 
             return Response(car_serializer.data)
         else:
-            return Response({"error": "Part not listed"})
+            return Response({"error": "Part not listed"}, status=status.HTTP_400_BAD_REQUEST)
 
     except NotSwappabledTyresException as e:
-        return Response({'error': f'{e.message}'})
+        return Response({'error': f'{e.message}'}, status=status.HTTP_400_BAD_REQUEST)
     except KeyError as e:
-        return Response({'error': f'Missing argument: {e}'})
+        return Response({'error': f'Missing argument: {e}'}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
-        return Response({'error': f'{e}'})
+        return Response({'error': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(('GET',))
@@ -112,8 +112,8 @@ def trip(request):
         return Response(car_serializer.data)
 
     except NotUsableCarException as e:
-        return Response({'error': f'{e.message}'})
+        return Response({'error': f'{e.message}'}, status=status.HTTP_400_BAD_REQUEST)
     except KeyError as e:
-        return Response({'error': f'Missing argument: {e}'})
+        return Response({'error': f'Missing argument: {e}'}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
-        return Response({'error': f'{e}'})
+        return Response({'error': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
