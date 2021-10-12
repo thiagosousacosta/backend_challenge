@@ -70,9 +70,9 @@ def make_trip(car, distance):
 
 def check_car_condition(car, current_gas_l):
     tyres = car.tyres.all()
-
-    car = refuel_car(car, car.gas_capacity)
-    current_gas_l = car.gas_capacity
+    if current_gas_l == 0:
+        car = refuel_car(car, car.gas_capacity)
+        current_gas_l = car.gas_capacity
 
     tyres_id = [x.tyre_id for x in tyres if x.degradation >
                 MAX_TYRE_DEGRADATION]
